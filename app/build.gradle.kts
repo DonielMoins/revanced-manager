@@ -17,9 +17,9 @@ repositories {
         url = uri("https://maven.pkg.github.com/revanced/revanced-patcher")
         credentials {
             username =
-                (project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")) as String
+                (project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")) as? String
             password =
-                (project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")) as String
+                (project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")) as? String
         }
     }
 }
