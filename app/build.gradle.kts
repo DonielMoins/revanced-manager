@@ -91,10 +91,10 @@ dependencies {
     // Core
     implementation("androidx.core:core-ktx:1.8.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.1")
-    implementation("androidx.activity:activity-compose:1.4.0")
+    implementation("androidx.activity:activity-compose:1.5.0")
     implementation("androidx.compose.ui:ui:$composeVersion")
     implementation("androidx.compose.ui:ui-tooling-preview:$composeVersion")
-    implementation("androidx.navigation:navigation-compose:2.5.0-rc02")
+    implementation("androidx.navigation:navigation-compose:2.5.0")
 
     // ReVanced
     implementation("app.revanced:revanced-patcher:2.0.4")
@@ -106,6 +106,10 @@ dependencies {
     // Compose Destinations
     implementation("io.github.raamcosta.compose-destinations:core:1.5.5-beta")
     ksp("io.github.raamcosta.compose-destinations:ksp:1.5.5-beta")
+
+    // Compose UI tooling
+    debugImplementation("androidx.compose.ui:ui-tooling:1.1.1")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.1.1")
 
     // Accompanist
     implementation("com.google.accompanist:accompanist-drawablepainter:0.24.8-beta")

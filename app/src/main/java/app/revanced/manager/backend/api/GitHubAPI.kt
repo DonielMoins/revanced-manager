@@ -3,8 +3,9 @@ package app.revanced.manager.backend.api
 import android.util.Log
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import org.json.JSONObject
 
 object GitHubAPI {
     private const val tag = "GitHubAPI"
@@ -61,6 +62,60 @@ object GitHubAPI {
                     val date: String
                 )
             }
+        }
+    }
+
+    //  Announcements are fetched from repo's 'announcements.json' file.
+    //  Version is passed for backwards compatibility, or possible migration of announcements to a separate repo;
+    //  to know which announcements to fetch.
+    //  TODO: create separate version channels, Ex.: Stable; Beta; Canary.
+    object Announcements {
+        suspend fun latestAnnouncement(repo: String, version: String): Announcement {
+            when (version.lowercase()) {
+                "canary", "beta", "stable" -> {
+
+                    val annObj: AnnouncementObject? =
+                        client.get("$baseUrl/$repo/contents/pages/announcements.json").body()
+                    if (annObj !is AnnouncementObject) throw Exception("Could not fetch announcements.json file from repo!")
+                    val contentsJson: JSONObject = JSONObject(
+                        client.get("$baseUrl/$repo/contents/pages/announcements.json")
+                            .body() as String
+                    )
+                    return Announcement(
+                        text = contentsJson.get(version.lowercase()).toString(),
+                        date = "NOT IMPLEMENTED",
+                        version = version
+                    )
+
+                }
+                else -> {
+                    Log.d(
+                        tag,
+                        "Unknown build version/channel ($version). Announcements will be unavailable."
+                    )
+                    throw Exception("Unknown build version/channel ($version). Announcements will be unavailable.")
+                }
+
+            }
+
+        }
+
+
+        @Serializable
+        class AnnouncementObject(
+            @SerialName("sha") val shaHash: String,
+            @SerialName("size") val size: String,
+            @SerialName("content") val encodedContent: String,
+            @SerialName("encoding") val encoding: String,
+            @SerialName("download_url") val downloadURL: String,
+        )
+
+        class Announcement(
+            val text: String,
+            val date: String?,
+            val version: String?
+        ) {
+
         }
     }
 }

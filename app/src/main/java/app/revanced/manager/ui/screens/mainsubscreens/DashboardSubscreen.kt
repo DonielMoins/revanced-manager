@@ -6,16 +6,15 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.currentCompositionLocalContext
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import app.revanced.manager.R
+import app.revanced.manager.ui.Resource
 import app.revanced.manager.ui.models.DashboardViewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootNavGraph
@@ -28,6 +27,7 @@ fun DashboardSubscreen(
     navigator: NavController,
     vm: DashboardViewModel = viewModel()
 ) {
+    val latestAnnouncement by vm.latestAnnouncement
     Column(modifier = Modifier.padding(16.dp)) {
         Card(
             modifier = Modifier
@@ -42,7 +42,13 @@ fun DashboardSubscreen(
                 )
 
                 Text(
-                    text = stringResource(id = R.string.card_announcement_body_placeholder),
+                    text = when (val annCast = latestAnnouncement) {
+                        is Resource.Loading -> "Loading..."
+                        is Resource.Success -> annCast.data.text
+//                        is Resource.Failure -> annCast.message.text
+                        else -> "Failed to load announcement."
+                    }
+                        ?: stringResource(id = R.string.card_announcement_body_placeholder),
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(0.dp, 8.dp)
                 )

@@ -9,6 +9,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.revanced.manager.Global
 import app.revanced.manager.backend.api.GitHubAPI
+import app.revanced.manager.ui.Resource
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -27,22 +29,52 @@ class DashboardViewModel : ViewModel() {
     val managerCommitDate: String
         get() = _latestManagerCommit?.commitDate ?: "unknown"
 
+    var latestAnnouncement = mutableStateOf<Resource<GitHubAPI.Announcements.Announcement>>(
+        Resource.Loading
+    )
+
     init {
-        fetchLastCommit()
+        viewModelScope.launch {
+            fetchLastCommit()
+
+            //  Although latestAnnouncement is currently in GitHubAPI, it should be moved later to a more permanent location along with the Announcement source.
+            getAnnouncement().collect { response ->
+                latestAnnouncement.value =
+                    response as Resource<GitHubAPI.Announcements.Announcement>
+
+            }
+
+
+        }
+
     }
 
-    private fun fetchLastCommit() {
-        viewModelScope.launch {
-            try {
-                _latestPatcherCommit = GitHubAPI.Commits.latestCommit(Global.ghPatcher, "HEAD")
-            } catch (e: Exception) {
-                Log.e(tag, "failed to fetch latest patcher commit", e)
-            }
-           try {
-               _latestManagerCommit = GitHubAPI.Commits.latestCommit(Global.ghManager, "HEAD")
-           } catch (e: Exception) {
-               Log.e(tag, "failed to fetch latest manager commit", e)
-           }
+    private suspend fun getAnnouncement() = flow {
+        try {
+            emit(Resource.Loading)
+            emit(
+                Resource.Success(
+                    GitHubAPI.Announcements.latestAnnouncement(
+                        Global.ghManager,
+                        "canary"
+                    )
+                )
+            )
+        } catch (e: Exception) {
+            emit(Resource.Failure(e))
+        }
+    }
+
+    private suspend fun fetchLastCommit() {
+        try {
+            _latestPatcherCommit = GitHubAPI.Commits.latestCommit(Global.ghPatcher, "HEAD")
+        } catch (e: Exception) {
+            Log.e(tag, "failed to fetch latest patcher commit", e)
+        }
+        try {
+            _latestManagerCommit = GitHubAPI.Commits.latestCommit(Global.ghManager, "HEAD")
+        } catch (e: Exception) {
+            Log.e(tag, "failed to fetch latest manager commit", e)
         }
     }
 
